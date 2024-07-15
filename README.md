@@ -13,7 +13,11 @@ Example:
   $ go run cmd/generate/main.go example/words.json  
 ```
 
-This will run 50 attempts and render the result with the most placed words.
+This will generate the following crossword from the given words file: `example/words.json`
+
+<img src="example/words.png" style="width: 600px" />
+
+### Note on interactive crosswords
 
 If the crossword is being solved interactively you would need to store the
 generated `Crossword` (e.g. json encode it to a file). This can easily 
