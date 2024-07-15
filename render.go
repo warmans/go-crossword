@@ -73,7 +73,7 @@ func RenderPNG(c *Crossword, width, height int) (*gg.Context, error) {
 					for _, pl := range placements {
 						if pl.X == gridX && pl.Y == gridY {
 							// draw the word start identifier
-							dc.DrawString(pl.ID(), float64(gridX)*cellWidth, float64(gridY)*cellHeight+12+offset)
+							dc.DrawString(pl.ClueID(), float64(gridX)*cellWidth, float64(gridY)*cellHeight+12+offset)
 							offset = cellHeight - 16
 						}
 						if pl.Solved {

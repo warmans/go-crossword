@@ -23,7 +23,7 @@ func NewGrid(size int) Grid {
 type Grid [][]Cell
 
 type Placement struct {
-	id       int
+	ID       int
 	Word     Word
 	X        int
 	Y        int
@@ -31,11 +31,11 @@ type Placement struct {
 	Solved   bool
 }
 
-func (p Placement) ID() string {
+func (p Placement) ClueID() string {
 	if p.Vertical {
-		return fmt.Sprintf("D%d", p.id)
+		return fmt.Sprintf("D%d", p.ID)
 	}
-	return fmt.Sprintf("A%d", p.id)
+	return fmt.Sprintf("A%d", p.ID)
 }
 
 type Word struct {
@@ -121,7 +121,7 @@ func (g *Generator) Generate(words []Word, attempts int) *Crossword {
 		for startWord := range len(words) {
 			// place the first word
 			g.placeWord(Placement{
-				id:       1,
+				ID:       1,
 				Word:     words[startWord],
 				X:        0,
 				Y:        0,
@@ -178,7 +178,7 @@ func (g *Generator) placeWord(placement Placement) {
 			g.grid[placement.Y+c][placement.X] = Cell(placement.Word.Word[c])
 		}
 	}
-	placement.id = len(g.placedWords) + 1
+	placement.ID = len(g.placedWords) + 1
 	g.placedWords = append(g.placedWords, placement)
 }
 

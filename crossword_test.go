@@ -648,28 +648,28 @@ X#O#
 X#O#
 FUD#`,
 			wantPlacedWords: []Placement{{
-				id:       1,
+				ID:       1,
 				Word:     Word{Word: "DUFF"},
 				X:        0,
 				Y:        0,
 				Vertical: false,
 				Solved:   true,
 			}, {
-				id:       2,
+				ID:       2,
 				Word:     Word{Word: "DXXF"},
 				X:        0,
 				Y:        0,
 				Vertical: true,
 				Solved:   true,
 			}, {
-				id:       3,
+				ID:       3,
 				Word:     Word{Word: "FOOD"},
 				X:        2,
 				Y:        0,
 				Vertical: true,
 				Solved:   true,
 			}, {
-				id:       4,
+				ID:       4,
 				Word:     Word{Word: "FUD"},
 				X:        0,
 				Y:        3,
