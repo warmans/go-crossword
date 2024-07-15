@@ -633,56 +633,55 @@ D###
 			words:     []Word{{Word: "food"}, {Word: "fud"}, {Word: "duff"}},
 			solve:     true,
 			wantCrossword: `
-FOOD
-U##U
-D##F
-###F`,
+DUFF
+##O#
+##O#
+FUD#`,
 		}, {
 			name:      "four words placed",
 			generator: NewGenerator(4),
 			words:     []Word{{Word: "food"}, {Word: "fud"}, {Word: "duff"}, {Word: "dxxf"}},
 			solve:     true,
 			wantCrossword: `
-FOOD
-U##U
-DXXF
-###F`,
-			wantPlacedWords: []Placement{
-				{
-					id:       1,
-					Word:     Word{Word: "FOOD"},
-					X:        0,
-					Y:        0,
-					Vertical: false,
-					Solved:   true,
-				}, {
-					id:       2,
-					Word:     Word{Word: "DUFF"},
-					X:        3,
-					Y:        0,
-					Vertical: true,
-					Solved:   true,
-				}, {
-					id:       3,
-					Word:     Word{Word: "DXXF"},
-					X:        0,
-					Y:        2,
-					Vertical: false,
-					Solved:   true,
-				}, {
-					id:       4,
-					Word:     Word{Word: "FUD"},
-					X:        0,
-					Y:        0,
-					Vertical: true,
-					Solved:   true,
-				},
+DUFF
+X#O#
+X#O#
+FUD#`,
+			wantPlacedWords: []Placement{{
+				id:       1,
+				Word:     Word{Word: "DUFF"},
+				X:        0,
+				Y:        0,
+				Vertical: false,
+				Solved:   true,
+			}, {
+				id:       2,
+				Word:     Word{Word: "DXXF"},
+				X:        0,
+				Y:        0,
+				Vertical: true,
+				Solved:   true,
+			}, {
+				id:       3,
+				Word:     Word{Word: "FOOD"},
+				X:        2,
+				Y:        0,
+				Vertical: true,
+				Solved:   true,
+			}, {
+				id:       4,
+				Word:     Word{Word: "FUD"},
+				X:        0,
+				Y:        3,
+				Vertical: false,
+				Solved:   true,
+			},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cw := tt.generator.Generate(tt.words)
+			cw := tt.generator.Generate(tt.words, 1)
 			if tt.solve {
 				cw.Solve()
 			}

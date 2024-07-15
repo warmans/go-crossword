@@ -1,6 +1,7 @@
 package crossword
 
 import (
+	"cmp"
 	"fmt"
 	"math/rand"
 	"slices"
@@ -96,10 +97,13 @@ func (g *Generator) Generate(words []Word, attempts int) *Crossword {
 	}
 
 	var bestCrossword *Crossword
-	for range attempts {
-		if attempts == 0 {
+	for k := range attempts {
+		if k == 0 {
 			// first attempt sort words by length
-			slices.SortFunc(words, func(a, b Word) int {
+			slices.SortStableFunc(words, func(a, b Word) int {
+				if len(a.Word) == len(b.Word) {
+					return cmp.Compare(a.Word, b.Word)
+				}
 				if len(a.Word) > len(b.Word) {
 					return -1
 				}
@@ -114,7 +118,7 @@ func (g *Generator) Generate(words []Word, attempts int) *Crossword {
 				return 1
 			})
 		}
-		for startWord := range len(words) - 1 {
+		for startWord := range len(words) {
 			// place the first word
 			g.placeWord(Placement{
 				id:       1,
