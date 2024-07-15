@@ -20,7 +20,29 @@ func init() {
 	}
 }
 
-func RenderText(cw *Crossword) string {
+func ResolveOptions(opts ...RenderOption) *Options {
+	opt := &Options{}
+	for _, v := range opts {
+		v(opt)
+	}
+	return opt
+}
+
+type Options struct {
+	solveAll bool
+}
+
+type RenderOption func(opts *Options)
+
+func WithAllSolved() RenderOption {
+	return func(opts *Options) {
+		opts.solveAll = true
+	}
+}
+
+func RenderText(cw *Crossword, opts ...RenderOption) string {
+	options := ResolveOptions(opts...)
+
 	out := &bytes.Buffer{}
 	for y := range cw.Grid {
 		for x := range cw.Grid[y] {
@@ -33,7 +55,7 @@ func RenderText(cw *Crossword) string {
 						solved = true
 					}
 				}
-				if solved {
+				if solved || options.solveAll {
 					fmt.Fprintf(out, "%s", string(cw.Grid[y][x]))
 				} else {
 					fmt.Fprintf(out, "?")
@@ -46,7 +68,8 @@ func RenderText(cw *Crossword) string {
 	return out.String()
 }
 
-func RenderPNG(c *Crossword, width, height int) (*gg.Context, error) {
+func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Context, error) {
+	options := ResolveOptions(opts...)
 
 	cellWidth := float64(width / len(c.Grid))
 	cellHeight := float64(height / len(c.Grid))
@@ -83,7 +106,7 @@ func RenderPNG(c *Crossword, width, height int) (*gg.Context, error) {
 				}
 
 				dc.SetRGB(0, 0, 0)
-				if solved {
+				if solved || options.solveAll {
 					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 24}))
 					dc.DrawStringAnchored(
 						strings.ToUpper(string(cell)),
