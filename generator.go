@@ -39,7 +39,7 @@ type generatorOpts struct {
 }
 
 func Generate(gridSize int, words []Word, attempts int, opts ...GeneratorOpt) *Crossword {
-	return NewGenerator(gridSize).Generate(words, attempts)
+	return NewGenerator(gridSize).Generate(words, attempts, opts...)
 }
 
 func NewGenerator(gridSize int) *Generator {
