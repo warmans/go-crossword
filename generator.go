@@ -67,10 +67,14 @@ func (g *Generator) Generate(words []Word, attempts int, opts ...GeneratorOpt) *
 	// apply options
 	if options.revealFirstChars {
 		for k := range words {
+			numHints := 1
 			for charIdx, char := range words[k].Word {
 				if charIdx == 0 || (char == ' ' && charIdx+1 < len(words[k].Word) && words[k].Word[charIdx+1] != ' ') {
 					// note that because the spaces will be removed the stored index not incremented
-					words[k].CharacterHints = append(words[k].CharacterHints, charIdx)
+					words[k].CharacterHints = append(words[k].CharacterHints, (charIdx+1)-numHints)
+					if charIdx > 0 {
+						numHints += 1
+					}
 				}
 			}
 		}

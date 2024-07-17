@@ -709,15 +709,15 @@ F??D
 			name:             "with first char of each word revealed (and whitespace handled)",
 			generator:        NewGenerator(6),
 			generatorOptions: []GeneratorOpt{WithRevealFirstLetterOfEachWord(true)},
-			words:            []Word{{Word: "  foo     bar "}, {Word: "food   "}},
+			words:            []Word{{Word: "doom"}, {Word: "  foo     bar "}, {Word: "fo uo do   "}},
 			solve:            false,
 			wantCrossword: `
 F??B??
 ?#####
+U#####
 ?#####
-?#####
-######
-######`,
+D???##
+?#####`,
 			wantPlacedWords: []Placement{{
 				ID:       1,
 				Word:     Word{Word: "FOOBAR", CharacterHints: []int{0, 3}},
@@ -727,10 +727,17 @@ F??B??
 				Solved:   false,
 			}, {
 				ID:       2,
-				Word:     Word{Word: "FOOD", CharacterHints: []int{0}},
+				Word:     Word{Word: "FOUODO", CharacterHints: []int{0, 2, 4}},
 				X:        0,
 				Y:        0,
 				Vertical: true,
+				Solved:   false,
+			}, {
+				ID:       3,
+				Word:     Word{Word: "DOOM", CharacterHints: []int{0}},
+				X:        0,
+				Y:        4,
+				Vertical: false,
 				Solved:   false,
 			}},
 		}, {
