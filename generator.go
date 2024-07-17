@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-var spaces *regexp.Regexp = regexp.MustCompile(`\s+`)
-var nonAlphanumeric *regexp.Regexp = regexp.MustCompile(`[^a-zA-Z0-9\s]+`)
+var spaces = regexp.MustCompile(`\s+`)
+var nonAlphanumeric = regexp.MustCompile(`[^a-zA-Z0-9\s]+`)
 
 type GeneratorOpt func(opts *generatorOpts)
 

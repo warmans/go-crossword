@@ -6,6 +6,7 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font/gofont/goregular"
+	"image/color"
 	"log"
 	"slices"
 	"strings"
@@ -22,7 +23,12 @@ func init() {
 }
 
 func ResolveOptions(opts ...RenderOption) *Options {
-	opt := &Options{}
+	opt := &Options{
+		backgroundColor:     color.Black,
+		wordBackgroundColor: color.White,
+		wordColor:           color.Black,
+		labelColor:          color.RGBA{R: 200, G: 10, B: 10, A: 255},
+	}
 	for _, v := range opts {
 		v(opt)
 	}
@@ -30,7 +36,12 @@ func ResolveOptions(opts ...RenderOption) *Options {
 }
 
 type Options struct {
-	solveAll bool
+	solveAll            bool
+	borderWidth         int
+	backgroundColor     color.Color
+	wordBackgroundColor color.Color
+	wordColor           color.Color
+	labelColor          color.Color
 }
 
 type RenderOption func(opts *Options)
@@ -38,6 +49,36 @@ type RenderOption func(opts *Options)
 func WithAllSolved(solveAll bool) RenderOption {
 	return func(opts *Options) {
 		opts.solveAll = solveAll
+	}
+}
+
+func WithBorder(width int) RenderOption {
+	return func(opts *Options) {
+		opts.borderWidth = width
+	}
+}
+
+func WithBackgroundColor(cl color.Color) RenderOption {
+	return func(opts *Options) {
+		opts.backgroundColor = cl
+	}
+}
+
+func WithWordBackgroundColor(cl color.Color) RenderOption {
+	return func(opts *Options) {
+		opts.wordBackgroundColor = cl
+	}
+}
+
+func WithWordColor(cl color.Color) RenderOption {
+	return func(opts *Options) {
+		opts.wordColor = cl
+	}
+}
+
+func WithLabelColor(cl color.Color) RenderOption {
+	return func(opts *Options) {
+		opts.labelColor = cl
 	}
 }
 
@@ -71,23 +112,30 @@ func RenderText(cw *Crossword, opts ...RenderOption) string {
 func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Context, error) {
 	options := ResolveOptions(opts...)
 
-	cellWidth := float64(width / len(c.Grid))
-	cellHeight := float64(height / len(c.Grid))
+	gridWidth := width - options.borderWidth
+	gridHeight := height - options.borderWidth
+
+	cellWidth := float64(gridWidth / len(c.Grid))
+	cellHeight := float64(gridHeight / len(c.Grid))
+	cellOffset := 0.0
+	if options.borderWidth > 0 {
+		cellOffset = float64(options.borderWidth) / 2
+	}
 
 	dc := gg.NewContext(width, height)
-	dc.SetRGB(0, 0, 0)
+	dc.SetColor(options.backgroundColor)
 	dc.Clear()
 
 	for gridY := 0; gridY < len(c.Grid); gridY++ {
 		for gridX, cell := range c.Grid[gridY] {
 
-			dc.DrawRectangle(float64(gridX)*cellWidth, float64(gridY)*cellHeight, cellWidth, cellHeight)
+			dc.DrawRectangle(cellOffset+(float64(gridX)*cellWidth), cellOffset+(float64(gridY)*cellHeight), cellWidth, cellHeight)
 
 			if !cell.Empty() {
-				dc.SetRGB(1, 1, 1)
+				dc.SetColor(options.wordBackgroundColor)
 				dc.FillPreserve()
-				dc.SetRGB(1, 0, 0)
 
+				dc.SetColor(options.labelColor)
 				var solved bool
 				placements := c.CellPlacements(gridX, gridY)
 				if placements != nil {
@@ -96,7 +144,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 					for _, pl := range placements {
 						if pl.X == gridX && pl.Y == gridY {
 							// draw the word start identifier
-							dc.DrawString(pl.ClueID(), float64(gridX)*cellWidth, float64(gridY)*cellHeight+12+offset)
+							dc.DrawString(pl.ClueID(), cellOffset+float64(gridX)*cellWidth, cellOffset+float64(gridY)*cellHeight+12+offset)
 							offset = cellHeight - 16
 						}
 						if pl.Solved || slices.Contains(pl.Word.CharacterHints, cell.CharIdx) {
@@ -105,13 +153,13 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 					}
 				}
 
-				dc.SetRGB(0, 0, 0)
+				dc.SetColor(options.wordColor)
 				if solved || options.solveAll {
 					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 24}))
 					dc.DrawStringAnchored(
 						strings.ToUpper(cell.String()),
-						float64(gridX)*cellWidth+cellWidth/2,
-						float64(gridY)*cellHeight+cellHeight/2,
+						cellOffset+float64(gridX)*cellWidth+cellWidth/2,
+						cellOffset+float64(gridY)*cellHeight+cellHeight/2,
 						0.5,
 						0.5,
 					)
@@ -121,7 +169,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				dc.Stroke()
 			} else {
 				//	dc.SetRGB(1, 1, 1)
-				dc.SetLineWidth(0.3)
+				dc.SetLineWidth(0)
 				dc.Stroke()
 			}
 		}
