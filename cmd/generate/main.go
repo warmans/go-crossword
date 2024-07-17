@@ -11,6 +11,8 @@ import (
 
 func main() {
 
+	solveAll := os.Getenv("SOLVE_ALL") == "true"
+
 	if len(os.Args) != 2 {
 		fmt.Println("Expected first argument to contain word file path")
 		os.Exit(1)
@@ -27,11 +29,10 @@ func main() {
 	}
 
 	cw := crossword.Generate(25, words, 50)
-	cw.Solve()
-	fmt.Print(crossword.RenderText(cw))
+	fmt.Print(crossword.RenderText(cw, crossword.WithAllSolved(solveAll)))
 	fmt.Printf("INPUT WORDS: %d OUTPUT WORDS: %d\n", len(words), len(cw.Words))
 
-	canvas, err := crossword.RenderPNG(cw, 1200, 1200)
+	canvas, err := crossword.RenderPNG(cw, 1200, 1200, crossword.WithAllSolved(solveAll))
 	if err != nil {
 		panic(err.Error())
 	}

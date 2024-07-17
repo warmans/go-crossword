@@ -592,12 +592,13 @@ func TestGenerator_scorePlacement_verticalWords(t *testing.T) {
 
 func TestGenerator_Generate(t *testing.T) {
 	tests := []struct {
-		name            string
-		generator       *Generator
-		words           []Word
-		wantCrossword   string
-		wantPlacedWords []Placement
-		solve           bool
+		name             string
+		generator        *Generator
+		generatorOptions []GeneratorOpt
+		words            []Word
+		wantCrossword    string
+		wantPlacedWords  []Placement
+		solve            bool
 	}{
 		{
 			name:      "single word placed",
@@ -675,13 +676,109 @@ FUD#`,
 				Y:        3,
 				Vertical: false,
 				Solved:   true,
-			},
-			},
+			}},
+		}, {
+			name:      "spaces stripped",
+			generator: NewGenerator(4),
+			words:     []Word{{Word: "ff oo"}},
+			solve:     true,
+			wantCrossword: `
+FFOO
+####
+####
+####`,
+			wantPlacedWords: []Placement{{
+				ID:       1,
+				Word:     Word{Word: "FFOO"},
+				X:        0,
+				Y:        0,
+				Vertical: false,
+				Solved:   true,
+			}},
+		}, {
+			name:      "character hints",
+			generator: NewGenerator(4),
+			words:     []Word{{Word: "food", CharacterHints: []int{0, 3}}},
+			solve:     false,
+			wantCrossword: `
+F??D
+####
+####
+####`,
+		}, {
+			name:             "with first char of each word revealed (and whitespace handled)",
+			generator:        NewGenerator(6),
+			generatorOptions: []GeneratorOpt{WithRevealFirstLetterOfEachWord(true)},
+			words:            []Word{{Word: "  foo     bar "}, {Word: "food   "}},
+			solve:            false,
+			wantCrossword: `
+F??B??
+?#####
+?#####
+?#####
+######
+######`,
+			wantPlacedWords: []Placement{{
+				ID:       1,
+				Word:     Word{Word: "FOOBAR", CharacterHints: []int{0, 3}},
+				X:        0,
+				Y:        0,
+				Vertical: false,
+				Solved:   false,
+			}, {
+				ID:       2,
+				Word:     Word{Word: "FOOD", CharacterHints: []int{0}},
+				X:        0,
+				Y:        0,
+				Vertical: true,
+				Solved:   false,
+			}},
+		}, {
+			name:      "special characters stripped",
+			generator: NewGenerator(6),
+			words:     []Word{{Word: "foo+bar???!"}},
+			solve:     true,
+			wantCrossword: `
+FOOBAR
+######
+######
+######
+######
+######`,
+			wantPlacedWords: []Placement{{
+				ID:       1,
+				Word:     Word{Word: "FOOBAR"},
+				X:        0,
+				Y:        0,
+				Vertical: false,
+				Solved:   true,
+			}},
+		}, {
+			name:             "special characters kept",
+			generatorOptions: []GeneratorOpt{WithKeepSpecialCharacters(true)},
+			generator:        NewGenerator(6),
+			words:            []Word{{Word: "fo+ar!"}},
+			solve:            true,
+			wantCrossword: `
+FO+AR!
+######
+######
+######
+######
+######`,
+			wantPlacedWords: []Placement{{
+				ID:       1,
+				Word:     Word{Word: "FO+AR!"},
+				X:        0,
+				Y:        0,
+				Vertical: false,
+				Solved:   true,
+			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cw := tt.generator.Generate(tt.words, 1)
+			cw := tt.generator.Generate(tt.words, 1, tt.generatorOptions...)
 			if tt.solve {
 				cw.Solve()
 			}

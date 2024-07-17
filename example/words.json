@@ -1,7 +1,8 @@
 [
   {
     "Word": "television",
-    "Clue": "Forget about science, make me this."
+    "Clue": "Forget about science, make me this.",
+    "CharacterHints": [0, 2]
   },
   {
     "Word": "pasta",

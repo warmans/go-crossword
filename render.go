@@ -7,6 +7,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font/gofont/goregular"
 	"log"
+	"slices"
 	"strings"
 )
 
@@ -34,9 +35,9 @@ type Options struct {
 
 type RenderOption func(opts *Options)
 
-func WithAllSolved() RenderOption {
+func WithAllSolved(solveAll bool) RenderOption {
 	return func(opts *Options) {
-		opts.solveAll = true
+		opts.solveAll = solveAll
 	}
 }
 
@@ -46,22 +47,21 @@ func RenderText(cw *Crossword, opts ...RenderOption) string {
 	out := &bytes.Buffer{}
 	for y := range cw.Grid {
 		for x := range cw.Grid[y] {
-			if cw.Grid[y][x] == emptyCell {
+			if cw.Grid[y][x].Empty() {
 				fmt.Fprintf(out, "#")
 			} else {
 				var solved bool
 				for _, v := range cw.CellPlacements(x, y) {
-					if v.Solved {
+					if v.Solved || slices.Contains(v.Word.CharacterHints, cw.Grid[y][x].CharIdx) {
 						solved = true
 					}
 				}
 				if solved || options.solveAll {
-					fmt.Fprintf(out, "%s", string(cw.Grid[y][x]))
+					fmt.Fprintf(out, "%s", cw.Grid[y][x])
 				} else {
 					fmt.Fprintf(out, "?")
 				}
 			}
-
 		}
 		fmt.Fprintf(out, "\n")
 	}
@@ -83,7 +83,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 
 			dc.DrawRectangle(float64(gridX)*cellWidth, float64(gridY)*cellHeight, cellWidth, cellHeight)
 
-			if cell != emptyCell {
+			if !cell.Empty() {
 				dc.SetRGB(1, 1, 1)
 				dc.FillPreserve()
 				dc.SetRGB(1, 0, 0)
@@ -99,7 +99,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 							dc.DrawString(pl.ClueID(), float64(gridX)*cellWidth, float64(gridY)*cellHeight+12+offset)
 							offset = cellHeight - 16
 						}
-						if pl.Solved {
+						if pl.Solved || slices.Contains(pl.Word.CharacterHints, cell.CharIdx) {
 							solved = true
 						}
 					}
@@ -109,7 +109,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				if solved || options.solveAll {
 					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 24}))
 					dc.DrawStringAnchored(
-						strings.ToUpper(string(cell)),
+						strings.ToUpper(cell.String()),
 						float64(gridX)*cellWidth+cellWidth/2,
 						float64(gridY)*cellHeight+cellHeight/2,
 						0.5,
@@ -120,7 +120,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				dc.SetLineWidth(0.3)
 				dc.Stroke()
 			} else {
-				dc.SetRGB(1, 1, 1)
+				//	dc.SetRGB(1, 1, 1)
 				dc.SetLineWidth(0.3)
 				dc.Stroke()
 			}

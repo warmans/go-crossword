@@ -13,6 +13,12 @@ Example:
   $ go run cmd/generate/main.go example/words.json  
 ```
 
+or to see completed:
+
+```bash
+  $ SOLVE_ALL=true go run cmd/generate/main.go example/words.json  
+```
+
 This will generate the following crossword from the given words file: `example/words.json`
 
 <img src="example/words.png" style="width: 600px" />
