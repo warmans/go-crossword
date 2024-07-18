@@ -22,8 +22,8 @@ func init() {
 	}
 }
 
-func ResolveOptions(opts ...RenderOption) *Options {
-	opt := &Options{
+func resolveRenderOptions(opts ...RenderOption) *renderOpts {
+	opt := &renderOpts{
 		backgroundColor:     color.Black,
 		wordBackgroundColor: color.White,
 		wordColor:           color.Black,
@@ -35,7 +35,7 @@ func ResolveOptions(opts ...RenderOption) *Options {
 	return opt
 }
 
-type Options struct {
+type renderOpts struct {
 	solveAll            bool
 	borderWidth         int
 	backgroundColor     color.Color
@@ -44,46 +44,46 @@ type Options struct {
 	labelColor          color.Color
 }
 
-type RenderOption func(opts *Options)
+type RenderOption func(opts *renderOpts)
 
 func WithAllSolved(solveAll bool) RenderOption {
-	return func(opts *Options) {
+	return func(opts *renderOpts) {
 		opts.solveAll = solveAll
 	}
 }
 
 func WithBorder(width int) RenderOption {
-	return func(opts *Options) {
+	return func(opts *renderOpts) {
 		opts.borderWidth = width
 	}
 }
 
 func WithBackgroundColor(cl color.Color) RenderOption {
-	return func(opts *Options) {
+	return func(opts *renderOpts) {
 		opts.backgroundColor = cl
 	}
 }
 
 func WithWordBackgroundColor(cl color.Color) RenderOption {
-	return func(opts *Options) {
+	return func(opts *renderOpts) {
 		opts.wordBackgroundColor = cl
 	}
 }
 
 func WithWordColor(cl color.Color) RenderOption {
-	return func(opts *Options) {
+	return func(opts *renderOpts) {
 		opts.wordColor = cl
 	}
 }
 
 func WithLabelColor(cl color.Color) RenderOption {
-	return func(opts *Options) {
+	return func(opts *renderOpts) {
 		opts.labelColor = cl
 	}
 }
 
 func RenderText(cw *Crossword, opts ...RenderOption) string {
-	options := ResolveOptions(opts...)
+	options := resolveRenderOptions(opts...)
 
 	out := &bytes.Buffer{}
 	for y := range cw.Grid {
@@ -110,7 +110,7 @@ func RenderText(cw *Crossword, opts ...RenderOption) string {
 }
 
 func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Context, error) {
-	options := ResolveOptions(opts...)
+	options := resolveRenderOptions(opts...)
 
 	gridWidth := width - options.borderWidth
 	gridHeight := height - options.borderWidth

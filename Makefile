@@ -15,3 +15,7 @@ install.golangci:
 .PHONY: lint
 lint:
 	./.env/golangci-lint run --skip-dirs=/demo/*
+
+.PHONY: example.simple
+example.simple:
+	SOLVE_ALL=true go run example/simple/main.go sample/words.json

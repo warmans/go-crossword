@@ -1,30 +1,30 @@
+<!doctype html>
+<html>
 <head>
-	<meta charset="utf-8"/>
-	<script src="wasm_exec.js"></script>
-	<script>
-		if (!WebAssembly.instantiateStreaming) { // polyfill
-			WebAssembly.instantiateStreaming = async (resp, importObject) => {
-				const source = await (await resp).arrayBuffer();
-				return await WebAssembly.instantiate(source, importObject);
-			};
-		}
-
-		const go = new Go();
-		let mod, inst;
-		WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-			mod = result.module;
-			inst = result.instance;
-			run();
-		}).catch((err) => {
-			console.error(err);
-		});
-
-		async function run() {
-			console.clear();
-			await go.run(inst);
-			inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
-		}
-	</script>
+    <meta charset="utf-8"/>
+    <script src="wasm_exec.js"></script>
+    <script>
+        if (!WebAssembly.instantiateStreaming) { // polyfill
+            WebAssembly.instantiateStreaming = async (resp, importObject) => {
+                const source = await (await resp).arrayBuffer();
+                return await WebAssembly.instantiate(source, importObject);
+            };
+        }
+        const go = new Go();
+        let mod, inst;
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+            mod = result.module;
+            inst = result.instance;
+            run();
+        }).catch((err) => {
+            console.error(err);
+        });
+        async function run() {
+            console.clear();
+            await go.run(inst);
+            inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
+        }
+    </script>
     <style>
         th {
             text-align: right;
@@ -33,7 +33,8 @@
 </head>
 <body>
 <h1>Demo</h1>
-(Loading WASM - if nothing shows your browser may be too old.)
-<div id="app"></div>
+<div id="app">
+    WASM application - if nothing shows your browser may be too old.
+</div>
 </body>
 </html>

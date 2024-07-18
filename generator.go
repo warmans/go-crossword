@@ -25,7 +25,7 @@ func WithKeepSpecialCharacters(keep bool) GeneratorOpt {
 	}
 }
 
-func resolveOptions(opts []GeneratorOpt) *generatorOpts {
+func resolveGeneratorOptions(opts []GeneratorOpt) *generatorOpts {
 	resolved := &generatorOpts{}
 	for _, o := range opts {
 		o(resolved)
@@ -54,7 +54,7 @@ type Generator struct {
 
 func (g *Generator) Generate(words []Word, attempts int, opts ...GeneratorOpt) *Crossword {
 
-	options := resolveOptions(opts)
+	options := resolveGeneratorOptions(opts)
 
 	// strip unnecessary characters
 	for k := range words {
@@ -149,11 +149,7 @@ func (g *Generator) Generate(words []Word, attempts int, opts ...GeneratorOpt) *
 			}
 			*g = *NewGenerator(g.gridSize)
 		}
-		if bestCrossword == nil {
-			//todo: return error?
-			return nil
-		}
-		if len(words) == len(bestCrossword.Words) {
+		if bestCrossword != nil && len(words) == len(bestCrossword.Words) {
 			return bestCrossword
 		}
 	}

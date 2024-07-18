@@ -13,18 +13,18 @@ Interactive: [DEMO](https://warmans.github.io/go-crossword/demo/)
 Example: 
 
 ```bash
-  $ go run cmd/generate/main.go example/words.json  
+  $ go run example/simple/main.go sample/words.json  
 ```
 
 or to see completed:
 
 ```bash
-  $ SOLVE_ALL=true go run cmd/generate/main.go example/words.json  
+  $ SOLVE_ALL=true go run example/simple/main.go sample/words.json  
 ```
 
-This will generate the following crossword from the given words file: `example/words.json`
+This will generate the following crossword from the given words file: `sample/words.json`
 
-<img src="example/words.png" style="width: 600px" />
+<img src="example.png" style="width: 600px" />
 
 ### Note on interactive crosswords
 

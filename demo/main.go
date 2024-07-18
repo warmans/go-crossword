@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/csv"
 	"fmt"
 	"github.com/warmans/go-crossword"
 	"strconv"
@@ -13,16 +12,14 @@ import (
 )
 
 type Data struct {
-	ImgData string
-
+	ImgData     string
 	ImageWidth  string
 	ImageHeight string
 	Attempts    string
 	Words       string
-
-	GridSize string
-
-	ShowWords string
+	GridSize    string
+	ShowWords   string
+	Error       string
 }
 
 func main() {
@@ -36,11 +33,16 @@ func main() {
 		ShowWords:   "true",
 	}
 
-	data.ImgData = renderDataURL(data)
+	var err error
+	data.ImgData, err = renderDataURL(data)
+	if err != nil {
+		data.Error = err.Error()
+	}
 
 	vue.New(
 		vue.El("#app"),
 		vue.Template(`
+			<div style="background-color: #d00; color: #fff; width: 100%">{{Error}}</div>
 			<div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #ccc">
 				<img v-bind:src="ImgData" />
 			</div>
@@ -80,20 +82,22 @@ func main() {
 
 func Render(vctx vue.Context) {
 	data := vctx.Data().(*Data)
-	data.ImgData = renderDataURL(data)
+	var err error
+	data.ImgData, err = renderDataURL(data)
+	data.Error = ""
+	if err != nil {
+		data.Error = err.Error()
+	}
 }
 
-func renderDataURL(cfg *Data) string {
+func renderDataURL(cfg *Data) (string, error) {
 
-	wordReader := csv.NewReader(strings.NewReader(cfg.Words))
-	rows, err := wordReader.ReadAll()
+	words, err := crossword.WordsFromCSV(strings.NewReader(cfg.Words))
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
-
-	words := []crossword.Word{}
-	for _, r := range rows {
-		words = append(words, crossword.Word{Word: r[0], Clue: r[1]})
+	if len(words) == 0 {
+		return "", fmt.Errorf("no words were given")
 	}
 
 	cw := crossword.Generate(
@@ -101,7 +105,9 @@ func renderDataURL(cfg *Data) string {
 		words,
 		parseIntOrDefault(cfg.Attempts, 5),
 	)
-
+	if cw == nil {
+		return "", fmt.Errorf("crossword was not generated")
+	}
 	canvas, err := crossword.RenderPNG(
 		cw,
 		parseIntOrDefault(cfg.ImageWidth, 1000),
@@ -117,7 +123,7 @@ func renderDataURL(cfg *Data) string {
 		panic("failed to encode image: " + err.Error())
 	}
 
-	return fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(buff.Bytes()))
+	return fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(buff.Bytes())), nil
 }
 
 func parseIntOrDefault(strVal string, def int) int {
