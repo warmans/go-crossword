@@ -7,6 +7,8 @@ Loosely based on: https://stackoverflow.com/a/22256214
 The package does not guarantee all words can be placed in the grid but in general will 
 usually get there if it's possible to do so (given enough attempts). 
 
+Demo: https://warmans.github.io/go-crossword/demo/
+
 Example: 
 
 ```bash

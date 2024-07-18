@@ -149,6 +149,10 @@ func (g *Generator) Generate(words []Word, attempts int, opts ...GeneratorOpt) *
 			}
 			*g = *NewGenerator(g.gridSize)
 		}
+		if bestCrossword == nil {
+			//todo: return error?
+			return nil
+		}
 		if len(words) == len(bestCrossword.Words) {
 			return bestCrossword
 		}
