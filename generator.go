@@ -25,6 +25,14 @@ func WithKeepSpecialCharacters(keep bool) GeneratorOpt {
 	}
 }
 
+// WithAllAttempts will prevent return until all attempts have been exhausted.
+// The result with the most crossed words will be returned.
+func WithAllAttempts(allAttempts bool) GeneratorOpt {
+	return func(opts *generatorOpts) {
+		opts.runAllAttempts = allAttempts
+	}
+}
+
 func resolveGeneratorOptions(opts []GeneratorOpt) *generatorOpts {
 	resolved := &generatorOpts{}
 	for _, o := range opts {
@@ -36,6 +44,7 @@ func resolveGeneratorOptions(opts []GeneratorOpt) *generatorOpts {
 type generatorOpts struct {
 	revealFirstChars      bool
 	keepSpecialCharacters bool
+	runAllAttempts        bool
 }
 
 func Generate(gridSize int, words []Word, attempts int, opts ...GeneratorOpt) *Crossword {
@@ -50,6 +59,7 @@ type Generator struct {
 	gridSize    int
 	grid        Grid
 	placedWords []Placement
+	totalScore  int
 }
 
 func (g *Generator) Generate(words []Word, attempts int, opts ...GeneratorOpt) *Crossword {
@@ -142,15 +152,23 @@ func (g *Generator) Generate(words []Word, attempts int, opts ...GeneratorOpt) *
 				}
 
 				g.placeWord(*bestPlacement)
+				g.totalScore += bestScore
 			}
 
-			if bestCrossword == nil || len(g.placedWords) > len(bestCrossword.Words) {
-				bestCrossword = &Crossword{Words: g.placedWords, Grid: g.grid}
+			var wordDelta, scoreDelta int
+			if bestCrossword != nil {
+				wordDelta = len(g.placedWords) - len(bestCrossword.Words)
+				scoreDelta = g.totalScore - bestCrossword.TotalScore
+			}
+			if bestCrossword == nil || wordDelta > 0 || (wordDelta == 0 && scoreDelta > 0) {
+				bestCrossword = &Crossword{Words: g.placedWords, Grid: g.grid, TotalScore: g.totalScore}
 			}
 			*g = *NewGenerator(g.gridSize)
 		}
-		if bestCrossword != nil && len(words) == len(bestCrossword.Words) {
-			return bestCrossword
+		if !options.runAllAttempts {
+			if bestCrossword != nil && (len(words) == len(bestCrossword.Words)) {
+				return bestCrossword
+			}
 		}
 	}
 

@@ -55,8 +55,9 @@ type Word struct {
 }
 
 type Crossword struct {
-	Grid  Grid
-	Words []Placement
+	Grid       Grid
+	Words      []Placement
+	TotalScore int
 }
 
 func (cw *Crossword) Solve() {
