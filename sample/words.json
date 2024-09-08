@@ -6,7 +6,8 @@
   },
   {
     "Word": "pasta",
-    "Clue": "Karl was a latecomer to this."
+    "Clue": "Karl was a latecomer to this.",
+    "Label": "FOO"
   },
   {
     "Word": "crap",

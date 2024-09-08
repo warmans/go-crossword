@@ -39,15 +39,20 @@ type Placement struct {
 }
 
 func (p Placement) ClueID() string {
-	if p.Vertical {
-		return fmt.Sprintf("D%d", p.ID)
+	label := fmt.Sprintf("%d", p.ID)
+	if p.Word.Label != nil {
+		label = *p.Word.Label
 	}
-	return fmt.Sprintf("A%d", p.ID)
+	if p.Vertical {
+		return fmt.Sprintf("D%s", label)
+	}
+	return fmt.Sprintf("A%s", label)
 }
 
 type Word struct {
-	Word string
-	Clue string
+	Word  string
+	Clue  string
+	Label *string
 
 	// CharacterHints allows subset of characters to be revealed (e.g. []int{0} would reveal
 	// the first char of a word by default)
