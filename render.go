@@ -8,6 +8,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 	"image/color"
 	"log"
+	"math/rand"
 	"slices"
 	"strings"
 )
@@ -28,6 +29,7 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 		wordBackgroundColor: color.White,
 		wordColor:           color.Black,
 		labelColor:          color.RGBA{R: 200, G: 10, B: 10, A: 255},
+		clueColor:           color.White,
 	}
 	for _, v := range opts {
 		v(opt)
@@ -37,18 +39,39 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 
 type renderOpts struct {
 	solveAll            bool
+	solveRandom         bool
 	borderWidth         int
 	backgroundColor     color.Color
 	wordBackgroundColor color.Color
 	wordColor           color.Color
 	labelColor          color.Color
+	clueColor           color.Color
+	renderClues         bool
 }
 
 type RenderOption func(opts *renderOpts)
 
+func WithClues(clues bool) RenderOption {
+	return func(opts *renderOpts) {
+		opts.renderClues = clues
+	}
+}
+
+func WithClueColor(color color.Color) RenderOption {
+	return func(opts *renderOpts) {
+		opts.clueColor = color
+	}
+}
+
 func WithAllSolved(solveAll bool) RenderOption {
 	return func(opts *renderOpts) {
 		opts.solveAll = solveAll
+	}
+}
+
+func WithRandomSolved() RenderOption {
+	return func(opts *renderOpts) {
+		opts.solveRandom = true
 	}
 }
 
@@ -112,8 +135,25 @@ func RenderText(cw *Crossword, opts ...RenderOption) string {
 func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Context, error) {
 	options := resolveRenderOptions(opts...)
 
-	gridWidth := width - options.borderWidth
-	gridHeight := height - options.borderWidth
+	if options.solveAll {
+		c.Solve()
+	}
+	if options.solveRandom {
+		for k := range c.Words {
+			if rand.Float64() < 0.5 {
+				c.Words[k].Solved = true
+			}
+		}
+	}
+
+	var gridWidth, gridHeight int
+	if !options.renderClues {
+		gridWidth = width - options.borderWidth
+		gridHeight = height - options.borderWidth
+	} else {
+		gridWidth = (width - options.borderWidth) / 2
+		gridHeight = height - options.borderWidth
+	}
 
 	cellWidth := float64(gridWidth / len(c.Grid))
 	cellHeight := float64(gridHeight / len(c.Grid))
@@ -139,7 +179,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				var solved bool
 				placements := c.CellPlacements(gridX, gridY)
 				if placements != nil {
-					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 12}))
+					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 10}))
 					offset := 0.0
 					for _, pl := range placements {
 						if pl.X == gridX && pl.Y == gridY {
@@ -154,8 +194,8 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				}
 
 				dc.SetColor(options.wordColor)
-				if solved || options.solveAll {
-					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 24}))
+				if solved {
+					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 20}))
 					dc.DrawStringAnchored(
 						strings.ToUpper(cell.String()),
 						cellOffset+float64(gridX)*cellWidth+cellWidth/2,
@@ -168,12 +208,62 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				dc.SetLineWidth(0.3)
 				dc.Stroke()
 			} else {
-				//	dc.SetRGB(1, 1, 1)
 				dc.SetLineWidth(0)
 				dc.Stroke()
 			}
 		}
 	}
 
+	if options.renderClues {
+		leftPos := float64(gridWidth) + (float64(options.borderWidth) * 2)
+		maxClueWidth := float64(gridWidth) - (float64(options.borderWidth) * 2)
+		checkboxSpace := 15.0
+
+		dc.SetColor(options.clueColor)
+		dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 12}))
+		dc.SetLineWidth(0.3)
+
+		offset := float64(options.borderWidth) / 2
+
+		// DOWN
+		dc.DrawString("DOWN", leftPos, offset)
+		offset += 10
+		for _, w := range c.Words {
+
+			if w.Vertical {
+				dc.DrawRectangle(leftPos, offset+2, 10, 10)
+				dc.StrokePreserve()
+				if w.Solved {
+					dc.Fill()
+				}
+				dc.ClearPath()
+				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s", w.ClueID(), w.Word.Clue), leftPos+checkboxSpace, offset, maxClueWidth)
+			}
+		}
+
+		offset += 32
+		dc.DrawString("ACROSS", leftPos, offset)
+		offset += 10
+		for _, w := range c.Words {
+			if !w.Vertical {
+				dc.DrawRectangle(leftPos, offset+2, 10, 10)
+				dc.StrokePreserve()
+				if w.Solved {
+					dc.Fill()
+				}
+				dc.ClearPath()
+				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s", w.ClueID(), w.Word.Clue), leftPos+checkboxSpace, offset, maxClueWidth)
+			}
+		}
+
+	}
+
 	return dc, nil
+}
+
+func drawStringWrapped(dc *gg.Context, s string, x, y float64, maxWidth float64) float64 {
+	var lineSpacing = 1.0
+	_, height := dc.MeasureMultilineString(strings.Join(dc.WordWrap(s, maxWidth), "\n"), lineSpacing)
+	dc.DrawStringWrapped(s, x, y, 0, 0, maxWidth, lineSpacing, gg.AlignLeft)
+	return height + 5 // add some extra space
 }
