@@ -92,6 +92,7 @@ func (g *Generator) Generate(words []Word, attempts int, opts ...GeneratorOpt) *
 
 	// cleanup words
 	for k := range words {
+		words[k].LettersCounts = countLetters(words[k].Word)
 		words[k].Word = strings.ReplaceAll(strings.ToUpper(words[k].Word), " ", "")
 	}
 
@@ -309,4 +310,13 @@ func (g *Generator) scorePlacement(pl Placement) int {
 		}
 	}
 	return score
+}
+
+func countLetters(wordStr string) []int {
+	words := strings.Split(wordStr, " ")
+	counts := make([]int, len(words))
+	for k, word := range words {
+		counts[k] = len(word)
+	}
+	return counts
 }
