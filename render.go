@@ -31,6 +31,7 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 		wordColor:           color.Black,
 		labelColor:          color.RGBA{R: 200, G: 10, B: 10, A: 255},
 		clueColor:           color.White,
+		clueFontSize:        10,
 	}
 	for _, v := range opts {
 		v(opt)
@@ -48,6 +49,7 @@ type renderOpts struct {
 	labelColor          color.Color
 	clueColor           color.Color
 	renderClues         bool
+	clueFontSize        float64
 }
 
 type RenderOption func(opts *renderOpts)
@@ -55,6 +57,12 @@ type RenderOption func(opts *renderOpts)
 func WithClues(clues bool) RenderOption {
 	return func(opts *renderOpts) {
 		opts.renderClues = clues
+	}
+}
+
+func WithClueFontSize(size float64) RenderOption {
+	return func(opts *renderOpts) {
+		opts.clueFontSize = size
 	}
 }
 
@@ -221,7 +229,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 		checkboxSpace := 15.0
 
 		dc.SetColor(options.clueColor)
-		dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 12}))
+		dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: options.clueFontSize}))
 		dc.SetLineWidth(0.3)
 
 		offset := float64(options.borderWidth) / 2
