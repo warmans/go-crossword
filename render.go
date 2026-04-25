@@ -3,14 +3,15 @@ package crossword
 import (
 	"bytes"
 	"fmt"
-	"github.com/fogleman/gg"
-	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/font/gofont/goregular"
 	"image/color"
 	"log"
 	"math/rand"
 	"slices"
 	"strings"
+
+	"github.com/fogleman/gg"
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 var font *truetype.Font
@@ -237,7 +238,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 					dc.Fill()
 				}
 				dc.ClearPath()
-				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s", w.ClueID(), w.Word.Clue), leftPos+checkboxSpace, offset, maxClueWidth)
+				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), leftPos+checkboxSpace, offset, maxClueWidth)
 			}
 		}
 
@@ -252,10 +253,9 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 					dc.Fill()
 				}
 				dc.ClearPath()
-				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s", w.ClueID(), w.Word.Clue), leftPos+checkboxSpace, offset, maxClueWidth)
+				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), leftPos+checkboxSpace, offset, maxClueWidth)
 			}
 		}
-
 	}
 
 	return dc, nil

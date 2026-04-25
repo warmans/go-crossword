@@ -3,6 +3,8 @@ package crossword
 import (
 	"fmt"
 	"slices"
+	"strconv"
+	"strings"
 )
 
 type Cell struct {
@@ -54,9 +56,26 @@ type Word struct {
 	Clue  string
 	Label *string
 
+	// The number of letters in the original words(s). Since they are concatinated, we need this
+	// to know the letter counts for multiple words.
+	LettersCounts []int
+
 	// CharacterHints allows subset of characters to be revealed (e.g. []int{0} would reveal
 	// the first char of a word by default)
 	CharacterHints []int
+}
+
+func (w Word) LetterCountStr() string {
+	if len(w.LettersCounts) == 0 {
+		return fmt.Sprintf("%d", len(w.Word))
+	}
+
+	parts := make([]string, len(w.LettersCounts))
+	for i, n := range w.LettersCounts {
+		parts[i] = strconv.Itoa(n)
+	}
+
+	return strings.Join(parts, ",")
 }
 
 type Crossword struct {

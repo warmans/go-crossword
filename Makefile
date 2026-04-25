@@ -18,4 +18,4 @@ lint:
 
 .PHONY: example.simple
 example.simple:
-	SOLVE_ALL=true go run example/simple/main.go sample/words.json
+	go run example/simple/main.go sample/words.json
