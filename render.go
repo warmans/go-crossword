@@ -152,9 +152,6 @@ func RenderText(cw *Crossword, opts ...RenderOption) string {
 func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Context, error) {
 	options := resolveRenderOptions(opts...)
 
-	if options.solveAll {
-		c.Solve()
-	}
 	if options.solveRandom {
 		for k := range c.Words {
 			if rand.Float64() < 0.5 {
@@ -211,7 +208,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				}
 
 				dc.SetColor(options.wordColor)
-				if solved {
+				if solved || options.solveAll {
 					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: options.wordFontSize}))
 					dc.DrawStringAnchored(
 						strings.ToUpper(cell.String()),
