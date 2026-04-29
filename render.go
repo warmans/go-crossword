@@ -116,6 +116,12 @@ func WithLabelColor(cl color.Color) RenderOption {
 	}
 }
 
+func WithWordFontSize(size float64) RenderOption {
+	return func(opts *renderOpts) {
+		opts.wordFontSize = size
+	}
+}
+
 func RenderText(cw *Crossword, opts ...RenderOption) string {
 	options := resolveRenderOptions(opts...)
 
