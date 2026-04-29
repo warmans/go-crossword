@@ -32,6 +32,7 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 		labelColor:          color.RGBA{R: 200, G: 10, B: 10, A: 255},
 		clueColor:           color.White,
 		clueFontSize:        10,
+		wordFontSize:        20,
 	}
 	for _, v := range opts {
 		v(opt)
@@ -50,6 +51,7 @@ type renderOpts struct {
 	clueColor           color.Color
 	renderClues         bool
 	clueFontSize        float64
+	wordFontSize        float64
 }
 
 type RenderOption func(opts *renderOpts)
@@ -204,7 +206,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 
 				dc.SetColor(options.wordColor)
 				if solved {
-					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 20}))
+					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: options.wordFontSize}))
 					dc.DrawStringAnchored(
 						strings.ToUpper(cell.String()),
 						cellOffset+float64(gridX)*cellWidth+cellWidth/2,
