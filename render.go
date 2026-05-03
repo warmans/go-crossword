@@ -205,13 +205,14 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 				var solved bool
 				placements := c.CellPlacements(gridX, gridY)
 				if placements != nil {
-					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 10}))
+					clueIDFontSize := cellHeight * 0.25
+					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: clueIDFontSize}))
 					offset := 0.0
 					for _, pl := range placements {
 						if pl.X == gridX && pl.Y == gridY {
 							// draw the word start identifier
-							dc.DrawString(pl.ClueID(), cellOffset+float64(gridX)*cellWidth, cellOffset+float64(gridY)*cellHeight+12+offset)
-							offset = cellHeight - 16
+							dc.DrawString(pl.ClueID(), cellOffset+float64(gridX)*cellWidth, cellOffset+float64(gridY)*cellHeight+clueIDFontSize+offset)
+							offset = cellHeight - (clueIDFontSize * 1.4)
 						}
 						if pl.Solved || slices.Contains(pl.Word.CharacterHints, cell.CharIdx) {
 							solved = true

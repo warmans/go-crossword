@@ -40,8 +40,8 @@ func main() {
 
 	canvas, err := crossword.RenderPNG(
 		cw,
-		1500,
-		750,
+		2000,
+		1000,
 		crossword.WithRandomSolved(),
 		crossword.WithBorder(50),
 		crossword.WithBackgroundColor(color.RGBA{R: 30, G: 30, B: 50, A: 255}),
