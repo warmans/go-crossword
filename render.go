@@ -237,11 +237,11 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 		dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: options.clueFontSize}))
 		dc.SetLineWidth(0.3)
 
-		offset := float64(options.borderWidth) / 2
+		offset := float64(options.borderWidth)/2 + options.clueFontSize
 
 		// DOWN
-		dc.DrawString("DOWN", leftPos, offset)
-		offset += 10
+		dc.DrawStringAnchored("DOWN", leftPos, offset, 0, 0)
+		offset += options.clueFontSize
 		for _, w := range c.Words {
 
 			if w.Vertical {
@@ -256,8 +256,8 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 		}
 
 		offset += 32
-		dc.DrawString("ACROSS", leftPos, offset)
-		offset += 10
+		dc.DrawStringAnchored("ACROSS", leftPos, offset, 0, 0)
+		offset += options.clueFontSize
 		for _, w := range c.Words {
 			if !w.Vertical {
 				dc.DrawRectangle(leftPos, offset+2, 10, 10)

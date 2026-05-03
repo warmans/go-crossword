@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/warmans/go-crossword"
 	"image/color"
 	"os"
 	"strconv"
+
+	"github.com/warmans/go-crossword"
 )
 
 func main() {
