@@ -153,36 +153,40 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 		}
 	}
 
-	var gridWidth, gridHeight int
+	B := float64(options.borderWidth)
+
+	var gridWidth float64
 	if !options.renderClues {
-		gridWidth = width - options.borderWidth
-		gridHeight = height - options.borderWidth
+		gridWidth = float64(width) - 2*B
 	} else {
-		gridWidth = (width - options.borderWidth) / 2
-		gridHeight = height - options.borderWidth
+		gridWidth = (float64(width) - 3*B) / 2
 	}
 
-	cellWidth := float64(gridWidth / len(c.Grid))
-	cellHeight := float64(gridHeight / len(c.Grid))
-	cellOffset := 0.0
-	if options.borderWidth > 0 {
-		cellOffset = float64(options.borderWidth) / 2
+	// ensure the grid is square and fits in the vertical space
+	if gridWidth > float64(height)-2*B {
+		gridWidth = float64(height) - 2*B
 	}
+
+	cellWidth := gridWidth / float64(len(c.Grid))
+	cellHeight := cellWidth
+	cellOffset := B
 
 	dc := gg.NewContext(width, height)
 
 	clueFontSize := 25.0
 	checkboxSize := 10.0
 	checkboxSpace := 15.0
+	var leftPos, maxClueWidth float64
 	if options.renderClues {
-		maxClueWidth := float64(gridWidth) - (float64(options.borderWidth) * 2)
+		leftPos = cellOffset + gridWidth + B
+		maxClueWidth = float64(width) - leftPos - B
 
 		// try to find a font size that fits.
 		for clueFontSize > 4 {
 			dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: clueFontSize}))
 			checkboxSize = dc.FontHeight() * 0.8
 			checkboxSpace = checkboxSize + 5
-			if measureCluesHeight(c, dc, clueFontSize, maxClueWidth-checkboxSpace) <= float64(height)-float64(options.borderWidth) {
+			if measureCluesHeight(c, dc, clueFontSize, maxClueWidth-checkboxSpace) <= float64(height)-2*B {
 				break
 			}
 			clueFontSize -= 0.5
@@ -242,14 +246,11 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 	}
 
 	if options.renderClues {
-		leftPos := float64(gridWidth) + (float64(options.borderWidth) * 2)
-		maxClueWidth := float64(gridWidth) - (float64(options.borderWidth) * 2)
-
 		dc.SetColor(options.clueColor)
 		dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: clueFontSize}))
 		dc.SetLineWidth(0.3)
 
-		offset := float64(options.borderWidth)/2 + clueFontSize
+		offset := B + clueFontSize
 
 		// DOWN
 		dc.DrawStringAnchored("DOWN", leftPos, offset, 0, 0)
