@@ -31,7 +31,7 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 		wordColor:           color.Black,
 		labelColor:          color.RGBA{R: 200, G: 10, B: 10, A: 255},
 		clueColor:           color.White,
-		wordFontSize:        20,
+		wordFontSizePcnt:    0.5,
 	}
 	for _, v := range opts {
 		v(opt)
@@ -49,7 +49,7 @@ type renderOpts struct {
 	labelColor          color.Color
 	clueColor           color.Color
 	renderClues         bool
-	wordFontSize        float64
+	wordFontSizePcnt    float64
 }
 
 type RenderOption func(opts *renderOpts)
@@ -108,9 +108,10 @@ func WithLabelColor(cl color.Color) RenderOption {
 	}
 }
 
-func WithWordFontSize(size float64) RenderOption {
+// WithWordFontSizePcnt sets the font size as a proportion of the containing square on the board.
+func WithWordFontSizePcnt(size float64) RenderOption {
 	return func(opts *renderOpts) {
-		opts.wordFontSize = size
+		opts.wordFontSizePcnt = size
 	}
 }
 
@@ -220,7 +221,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 
 				dc.SetColor(options.wordColor)
 				if solved || options.solveAll {
-					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: options.wordFontSize}))
+					dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: cellHeight * options.wordFontSizePcnt}))
 					dc.DrawStringAnchored(
 						strings.ToUpper(cell.String()),
 						cellOffset+float64(gridX)*cellWidth+cellWidth/2,
