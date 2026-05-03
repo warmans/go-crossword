@@ -1,4 +1,4 @@
-module github.com/warmans/go-crossword
+module github.com/warmans/go-crossword/v2
 
 go 1.22.3
 

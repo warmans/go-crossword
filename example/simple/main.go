@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/warmans/go-crossword"
+	"github.com/warmans/go-crossword/v2"
 )
 
 func main() {

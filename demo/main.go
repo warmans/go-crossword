@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/warmans/go-crossword"
+	"github.com/warmans/go-crossword/v2"
 	"strconv"
 	"strings"
 
