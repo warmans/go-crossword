@@ -31,7 +31,6 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 		wordColor:           color.Black,
 		labelColor:          color.RGBA{R: 200, G: 10, B: 10, A: 255},
 		clueColor:           color.White,
-		clueFontSize:        10,
 		wordFontSize:        20,
 	}
 	for _, v := range opts {
@@ -50,7 +49,6 @@ type renderOpts struct {
 	labelColor          color.Color
 	clueColor           color.Color
 	renderClues         bool
-	clueFontSize        float64
 	wordFontSize        float64
 }
 
@@ -59,12 +57,6 @@ type RenderOption func(opts *renderOpts)
 func WithClues(clues bool) RenderOption {
 	return func(opts *renderOpts) {
 		opts.renderClues = clues
-	}
-}
-
-func WithClueFontSize(size float64) RenderOption {
-	return func(opts *renderOpts) {
-		opts.clueFontSize = size
 	}
 }
 
@@ -177,6 +169,22 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 	}
 
 	dc := gg.NewContext(width, height)
+
+	clueFontSize := 25.0
+	if options.renderClues {
+		maxClueWidth := float64(gridWidth) - (float64(options.borderWidth) * 2)
+		checkboxSpace := 15.0
+
+		// try to find a font size that fits.
+		for clueFontSize > 4 {
+			dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: clueFontSize}))
+			if measureCluesHeight(c, dc, clueFontSize, maxClueWidth-checkboxSpace) <= float64(height)-float64(options.borderWidth) {
+				break
+			}
+			clueFontSize -= 0.5
+		}
+	}
+
 	dc.SetColor(options.backgroundColor)
 	dc.Clear()
 
@@ -234,14 +242,14 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 		checkboxSpace := 15.0
 
 		dc.SetColor(options.clueColor)
-		dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: options.clueFontSize}))
+		dc.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: clueFontSize}))
 		dc.SetLineWidth(0.3)
 
-		offset := float64(options.borderWidth)/2 + options.clueFontSize
+		offset := float64(options.borderWidth)/2 + clueFontSize
 
 		// DOWN
 		dc.DrawStringAnchored("DOWN", leftPos, offset, 0, 0)
-		offset += options.clueFontSize
+		offset += clueFontSize
 		for _, w := range c.Words {
 
 			if w.Vertical {
@@ -251,13 +259,13 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 					dc.Fill()
 				}
 				dc.ClearPath()
-				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), leftPos+checkboxSpace, offset, maxClueWidth)
+				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), leftPos+checkboxSpace, offset, maxClueWidth-checkboxSpace)
 			}
 		}
 
 		offset += 32
 		dc.DrawStringAnchored("ACROSS", leftPos, offset, 0, 0)
-		offset += options.clueFontSize
+		offset += clueFontSize
 		for _, w := range c.Words {
 			if !w.Vertical {
 				dc.DrawRectangle(leftPos, offset+2, 10, 10)
@@ -266,7 +274,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 					dc.Fill()
 				}
 				dc.ClearPath()
-				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), leftPos+checkboxSpace, offset, maxClueWidth)
+				offset += drawStringWrapped(dc, fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), leftPos+checkboxSpace, offset, maxClueWidth-checkboxSpace)
 			}
 		}
 	}
@@ -279,4 +287,26 @@ func drawStringWrapped(dc *gg.Context, s string, x, y float64, maxWidth float64)
 	_, height := dc.MeasureMultilineString(strings.Join(dc.WordWrap(s, maxWidth), "\n"), lineSpacing)
 	dc.DrawStringWrapped(s, x, y, 0, 0, maxWidth, lineSpacing, gg.AlignLeft)
 	return height + 5 // add some extra space
+}
+
+func measureCluesHeight(c *Crossword, dc *gg.Context, fontSize float64, maxWidth float64) float64 {
+	var lineSpacing = 1.0
+	offset := fontSize // DOWN header
+	offset += fontSize // DOWN header space
+	for _, w := range c.Words {
+		if w.Vertical {
+			_, height := dc.MeasureMultilineString(strings.Join(dc.WordWrap(fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), maxWidth), "\n"), lineSpacing)
+			offset += height + 5
+		}
+	}
+	offset += 32       // middle space
+	offset += fontSize // ACROSS header
+	offset += fontSize // ACROSS header space
+	for _, w := range c.Words {
+		if !w.Vertical {
+			_, height := dc.MeasureMultilineString(strings.Join(dc.WordWrap(fmt.Sprintf("%s: %s [%s]", w.ClueID(), w.Word.Clue, w.Word.LetterCountStr()), maxWidth), "\n"), lineSpacing)
+			offset += height + 5
+		}
+	}
+	return offset
 }
