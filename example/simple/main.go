@@ -40,8 +40,8 @@ func main() {
 
 	canvas, err := crossword.RenderPNG(
 		cw,
-		2000,
-		1000,
+		2400,
+		1500,
 		crossword.WithRandomSolved(),
 		crossword.WithBorder(50),
 		crossword.WithBackgroundColor(color.RGBA{R: 30, G: 30, B: 50, A: 255}),
@@ -49,6 +49,7 @@ func main() {
 		crossword.WithWordColor(color.RGBA{R: 10, G: 10, B: 10, A: 255}),
 		crossword.WithLabelColor(color.RGBA{R: 200, G: 10, B: 10, A: 255}),
 		crossword.WithClues(true),
+		crossword.WithClueColumns(false),
 	)
 	if err != nil {
 		panic(err.Error())
