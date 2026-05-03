@@ -35,6 +35,7 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 		clueColor:           color.White,
 		clueColumns:         false,
 		wordFontSizePcnt:    0.5,
+		clueRatio:           0.5,
 	}
 	for _, v := range opts {
 		v(opt)
@@ -45,7 +46,7 @@ func resolveRenderOptions(opts ...RenderOption) *renderOpts {
 type renderOpts struct {
 	solveAll            bool
 	solveRandom         bool
-	borderWidth         int
+	borderWidth         float64
 	backgroundColor     color.Color
 	wordBackgroundColor color.Color
 	wordColor           color.Color
@@ -54,6 +55,7 @@ type renderOpts struct {
 	renderClues         bool
 	clueColumns         bool
 	wordFontSizePcnt    float64
+	clueRatio           float64
 }
 
 type RenderOption func(opts *renderOpts)
@@ -88,7 +90,7 @@ func WithRandomSolved() RenderOption {
 	}
 }
 
-func WithBorder(width int) RenderOption {
+func WithBorder(width float64) RenderOption {
 	return func(opts *renderOpts) {
 		opts.borderWidth = width
 	}
@@ -122,6 +124,13 @@ func WithLabelColor(cl color.Color) RenderOption {
 func WithWordFontSizePcnt(size float64) RenderOption {
 	return func(opts *renderOpts) {
 		opts.wordFontSizePcnt = size
+	}
+}
+
+// WithClueRatio sets the proportion of the width that is dedicated to the clues.
+func WithClueRatio(ratio float64) RenderOption {
+	return func(opts *renderOpts) {
+		opts.clueRatio = ratio
 	}
 }
 
@@ -163,23 +172,22 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 		}
 	}
 
-	B := float64(options.borderWidth)
-
 	var gridWidth float64
 	if !options.renderClues {
-		gridWidth = float64(width) - 2*B
+		gridWidth = float64(width) - 2*options.borderWidth
 	} else {
-		gridWidth = (float64(width) - 3*B) / 2
+		gridWidth = (float64(width) - 3*options.borderWidth) * (1 - options.clueRatio)
 	}
+	requestedGridWidth := gridWidth
 
 	// ensure the grid is square and fits in the vertical space
-	if gridWidth > float64(height)-2*B {
-		gridWidth = float64(height) - 2*B
+	if gridWidth > float64(height)-2*options.borderWidth {
+		gridWidth = float64(height) - 2*options.borderWidth
 	}
 
 	cellWidth := gridWidth / float64(len(c.Grid))
 	cellHeight := cellWidth
-	cellOffset := B
+	cellOffset := options.borderWidth
 
 	dc := gg.NewContext(width, height)
 
@@ -188,8 +196,8 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 	checkboxSpace := 15.0
 	var leftPos, maxClueWidth float64
 	if options.renderClues {
-		leftPos = cellOffset + gridWidth + B
-		maxClueWidth = float64(width) - leftPos - B
+		leftPos = cellOffset + requestedGridWidth + options.borderWidth
+		maxClueWidth = float64(width) - leftPos - options.borderWidth
 
 		// try to find a font size that fits.
 		for clueFontSize > 4 {
@@ -200,7 +208,7 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 			if options.clueColumns {
 				clueColumns = 2
 			}
-			if measureCluesHeight(c, dc, clueFontSize, maxClueWidth, checkboxSpace, clueColumns, float64(options.borderWidth)) <= float64(height)-2*B {
+			if measureCluesHeight(c, dc, clueFontSize, maxClueWidth, checkboxSpace, clueColumns, float64(options.borderWidth)) <= float64(height)-2*options.borderWidth {
 				break
 			}
 			clueFontSize -= 0.5
@@ -292,13 +300,13 @@ func RenderPNG(c *Crossword, width, height int, opts ...RenderOption) (*gg.Conte
 		}
 
 		if !options.clueColumns {
-			offset := B + clueFontSize
+			offset := options.borderWidth + clueFontSize
 			offset = renderClueGroup("DOWN", true, leftPos, offset)
 			offset += float64(options.borderWidth)
 			renderClueGroup("ACROSS", false, leftPos, offset)
 		} else {
-			renderClueGroup("DOWN", true, leftPos, B+clueFontSize)
-			renderClueGroup("ACROSS", false, leftPos+colWidth+clueSpacing, B+clueFontSize)
+			renderClueGroup("DOWN", true, leftPos, options.borderWidth+clueFontSize)
+			renderClueGroup("ACROSS", false, leftPos+colWidth+clueSpacing, options.borderWidth+clueFontSize)
 		}
 	}
 
